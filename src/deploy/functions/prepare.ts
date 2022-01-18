@@ -16,7 +16,6 @@ import { needProjectId } from "../../projectUtils";
 import { track } from "../../track";
 import * as runtimes from "./runtimes";
 import * as validate from "./validate";
-import * as utils from "../../utils";
 import { logger } from "../../logger";
 import { ensureTriggerRegions } from "./triggerRegionHelper";
 import { ensureServiceAgentRoles } from "./checkIam";
@@ -30,7 +29,7 @@ function hasUserConfig(config: Record<string, unknown>): boolean {
 }
 
 function hasDotenv(opts: functionsEnv.UserEnvsOpts): boolean {
-  return previews.dotenv && functionsEnv.hasUserEnvs(opts);
+  return !opts.disabled && functionsEnv.hasUserEnvs(opts);
 }
 
 // We previously force-enabled AR. We want to wait on this to see if we can give
@@ -97,9 +96,10 @@ export async function prepare(
   const runtimeConfig = await getFunctionsConfig(context);
 
   const firebaseEnvs = functionsEnv.loadFirebaseEnvs(firebaseConfig, projectId);
-  const userEnvOpt = {
+  const userEnvOpt: functionsEnv.UserEnvsOpts = {
     functionsSource: sourceDir,
     projectId: projectId,
+    disabled: options.config.get("functions.disableDotenv") ?? false,
     projectAlias: options.projectAlias,
   };
   const userEnvs = functionsEnv.loadUserEnvs(userEnvOpt);
