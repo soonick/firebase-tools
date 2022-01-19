@@ -46,7 +46,7 @@ export class FunctionsServer {
     const args: FunctionsEmulatorArgs = {
       projectId,
       emulatableBackends: [this.backend],
-      disableDotenv: options.config.get("functions.disableDotenv") ?? false,
+      disableDotenv: options.config.get("functions.disableDotenv"),
       account,
       ...partialArgs,
     };
