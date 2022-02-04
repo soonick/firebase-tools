@@ -29,7 +29,7 @@ function hasUserConfig(config: Record<string, unknown>): boolean {
 }
 
 function hasDotenv(opts: functionsEnv.UserEnvsOpts): boolean {
-  return !opts.disabled && functionsEnv.hasUserEnvs(opts);
+  return functionsEnv.hasUserEnvs(opts);
 }
 
 // We previously force-enabled AR. We want to wait on this to see if we can give
@@ -99,7 +99,6 @@ export async function prepare(
   const userEnvOpt: functionsEnv.UserEnvsOpts = {
     functionsSource: sourceDir,
     projectId: projectId,
-    disabled: options.config.get("functions.disableDotenv") ?? false,
     projectAlias: options.projectAlias,
   };
   const userEnvs = functionsEnv.loadUserEnvs(userEnvOpt);
