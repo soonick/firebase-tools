@@ -108,7 +108,7 @@ export interface FunctionsRuntimeInstance {
   // A function to manually kill the child process as normal cleanup
   shutdown(): void;
   // A function to manually kill the child process in case of errors
-  kill(signal?: string): void;
+  kill(signal?: number): void;
   // Send an IPC message to the child process
   send(args: FunctionsRuntimeArgs): boolean;
 }
@@ -897,13 +897,13 @@ export class FunctionsEmulator implements EmulatorInstance {
         "functions",
         `Using node@${requestedMajorVersion} from host.`
       );
+    } else {
+      // Otherwise we'll warn and use the version that is currently running this process.
+      this.logger.log(
+        "WARN",
+        `Your requested "node" version "${requestedMajorVersion}" doesn't match your global version "${hostMajorVersion}". Using node@${hostMajorVersion} from host.`
+      );
     }
-
-    // Otherwise we'll warn and use the version that is currently running this process.
-    this.logger.log(
-      "WARN",
-      `Your requested "node" version "${requestedMajorVersion}" doesn't match your global version "${hostMajorVersion}"`
-    );
 
     return process.execPath;
   }
@@ -1082,6 +1082,13 @@ export class FunctionsEmulator implements EmulatorInstance {
       stdio: ["pipe", "pipe", "pipe", "ipc"],
     });
 
+    if (!childProcess.stderr) {
+      throw new FirebaseError(`childProcess.stderr is undefined.`);
+    }
+    if (!childProcess.stdout) {
+      throw new FirebaseError(`childProcess.stdout is undefined.`);
+    }
+
     const buffers: {
       [pipe: string]: {
         pipe: stream.Readable;
@@ -1115,7 +1122,7 @@ export class FunctionsEmulator implements EmulatorInstance {
       shutdown: () => {
         childProcess.kill();
       },
-      kill: (signal?: string) => {
+      kill: (signal?: number) => {
         childProcess.kill(signal);
         emitter.emit("log", new EmulatorLog("SYSTEM", "runtime-status", "killed"));
       },
